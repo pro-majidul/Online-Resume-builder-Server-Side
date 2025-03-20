@@ -13,7 +13,7 @@ const {
 router.post("/signup", registerUser);
 
 // user login 
-router.post("/signin", loginUser);
+router.put("/signin", loginUser);
 
 // get all users information 
 router.get("/users", getUsers);
