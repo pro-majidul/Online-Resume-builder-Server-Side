@@ -1,15 +1,15 @@
 const bcrypt = require("bcrypt");
 const User = require("../models/usersModels");
 const jwt = require("jsonwebtoken");
-const { signupSchema } = require("../middlewares/validator");
+const { signupSchema, signInSchema } = require("../middlewares/validator");
 
 //  (Register)
 const registerUser = async (req, res) => {
   const { email, password } = req.body;
   try {
-    const { error } = signupSchema.validate({email, password});
-    if(error){
-      return res.status(401).send({ message : error.details[0].message})
+    const { error } = signupSchema.validate({ email, password });
+    if (error) {
+      return res.status(401).send({ message: error.details[0].message });
     }
     let user = await User.findOne({ email });
     if (user) return res.status(400).send({ message: "User already exists" });
@@ -22,6 +22,47 @@ const registerUser = async (req, res) => {
   } catch (error) {
     res.status(500).send({ message: "Server Error", error });
   }
+};
+
+//login (Authentication)
+const loginUser = async (req, res) => {
+  const { email, password } = req.body;
+  try {
+    const { error, value } = signInSchema.validate({ email, password });
+    if (error) {
+      return res.status(401).send({ message: error.details[0].message });
+    }
+    const user = await User.findOne({ email }).select("+password");
+    if (!user)
+      return res.status(401).send({ message: "Invalid email address" });
+
+    const isMatch = await bcrypt.compare(password, user?.password);
+    if (!isMatch) return res.status(401).send({ message: "Invalid password" });
+
+    const token = jwt.sign(
+      { id: user._id, email: user.email, verified: user.verified },
+      process.env.JWT_SECRET,
+      { expiresIn: "7h" }
+    );
+    res
+      .cookie("Authorization", "Bearer" + token, {
+        expires: new Date(Date.now() + 8 * 3600000),
+        httpOnly: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "production",
+      })
+      .send({ success: true, message: "Login successful", token });
+  } catch (error) {
+    res.status(500).send({ message: "Server Error" });
+  }
+};
+
+// signout user
+
+const signout = async (req, res) => {
+  res
+    .clearCookie("Authorization")
+    .status(400)
+    .send({ success: true, message: "user logout successfully" });
 };
 
 // (GET)
@@ -76,27 +117,6 @@ const deleteUser = async (req, res) => {
   }
 };
 
-//login (Authentication)
-const loginUser = async (req, res) => {
-  const { email, password } = req.body;
-  try {
-    const user = await User.findOne({ email });
-    if (!user)
-      return res.status(400).send({ message: "Invalid email or password" });
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch)
-      return res.status(400).send({ message: "Invalid email or password" });
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "1h",
-    });
-    res.json({ message: "Login successful", token });
-  } catch (error) {
-    res.status(500).send({ message: "Server Error" });
-  }
-};
-
 module.exports = {
   registerUser,
   getUsers,
@@ -104,4 +124,5 @@ module.exports = {
   updateUser,
   deleteUser,
   loginUser,
+  signout,
 };
