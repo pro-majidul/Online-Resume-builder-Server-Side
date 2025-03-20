@@ -42,14 +42,27 @@ const loginUser = async (req, res) => {
     const token = jwt.sign(
       { id: user._id, email: user.email, verified: user.verified },
       process.env.JWT_SECRET,
-      
+      { expiresIn: "7h" }
     );
-    res.cookie('Authorization', 'Bearer' + token ,{
-      expiresIn: "7h", httpOnly : process.env.NODE_ENV === "production" , secure : process.env.NODE_ENV === "production",
-    }).send({ success : true ,message: "Login successful", token });
+    res
+      .cookie("Authorization", "Bearer" + token, {
+        expires: new Date(Date.now() + 8 * 3600000),
+        httpOnly: process.env.NODE_ENV === "production",
+        secure: process.env.NODE_ENV === "production",
+      })
+      .send({ success: true, message: "Login successful", token });
   } catch (error) {
     res.status(500).send({ message: "Server Error" });
   }
+};
+
+// signout user
+
+const signout = async (req, res) => {
+  res
+    .clearCookie("Authorization")
+    .status(400)
+    .send({ success: true, message: "user logout successfully" });
 };
 
 // (GET)
@@ -111,4 +124,5 @@ module.exports = {
   updateUser,
   deleteUser,
   loginUser,
+  signout,
 };

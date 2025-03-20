@@ -7,10 +7,14 @@ const {
   updateUser,
   deleteUser,
   loginUser,
+  signout,
 } = require("../controllers/authControllers");
 
 // user sign up or create a new account 
 router.post("/signup", registerUser);
+
+// user logout
+router.post("/signout", signout);
 
 // user login 
 router.put("/signin", loginUser);
