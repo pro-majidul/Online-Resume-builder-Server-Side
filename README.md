@@ -21,3 +21,15 @@ your-project/
 │── README.md          # Project documentation
 ```
 
+
+
+
+
+## API Key 
+
+* PUT ---http://localhost:5000/api/auth/signin
+* POST http://localhost:5000/api/auth/signup
+* GET  http://localhost:5000/api/auth/users
+* GET http://localhost:5000/api/auth/users/:id
+* PATCH http://localhost:5000/api/auth/users/:id
+* DELETE http://localhost:5000/api/auth/users/:id
