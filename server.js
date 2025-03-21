@@ -14,7 +14,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.get("/", (req, res) => {
-  res.send("Server is Running!");
+  res.send("Resume maker Server is Running!");
 });
 
 //User Authentication related API
