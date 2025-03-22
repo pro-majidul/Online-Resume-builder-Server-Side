@@ -65,6 +65,22 @@ const signout = async (req, res) => {
     .send({ success: true, message: "user logout successfully" });
 };
 
+const googleLogin = async (req, res) => {
+  const { email, name } = req.body;
+  try {
+    let user = await User.findOne({ email });
+
+    if (!user) {
+      user = new User({ email, name });
+      await user.save();
+    }
+
+    res.status(200).send({ success: true, user });
+  } catch (error) {
+    res.status(500).send({ message: "Server Error", error });
+  }
+};
+
 // (GET)
 const getUsers = async (req, res) => {
   try {
@@ -125,4 +141,5 @@ module.exports = {
   deleteUser,
   loginUser,
   signout,
+  googleLogin
 };
