@@ -29,6 +29,7 @@ your-project/
 
 * POST ---http://localhost:5000/api/auth/signin
 * POST http://localhost:5000/api/auth/signup
+* POST http://localhost:5000/api/auth/google-login
 * GET  http://localhost:5000/api/auth/users
 * GET http://localhost:5000/api/auth/users/:id
 * PATCH http://localhost:5000/api/auth/users/:id
