@@ -4,7 +4,7 @@ const userSchema = new mongoose.Schema({
   name: String,
   email: {
     type: String,
-    required: [true, "Email is required"], 
+    required: [true, "Email is required"],
     trim: true,
     unique: [true, "Email must be unique"],
     minLength: [5, "Email must have 5 characters!"],
@@ -12,12 +12,12 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, "Password must be provided"], 
+    required: [true, "Password must be provided"],
     trim: true,
     select: false,
   },
   verified: {
-    type: Boolean, 
+    type: Boolean,
     default: false,
   },
   verificationCode: {
@@ -36,7 +36,24 @@ const userSchema = new mongoose.Schema({
     type: Number,
     select: false,
   },
-},{timestamps : true});
+  // new
+  failedLoginAttempts: { 
+    type: Number,
+    default: 0 
+  },
+  isLocked: { 
+    type: Boolean, 
+    default: false 
+  },
+  lockUntil: { type: Date, 
+    default: null 
+  }
+}, { timestamps: true });
+
+// Add indexes for better performance:
+userSchema.index({ lockUntil: 1 });
+userSchema.index({ isLocked: 1 });
+
 
 const User = mongoose.model("User", userSchema);
 
