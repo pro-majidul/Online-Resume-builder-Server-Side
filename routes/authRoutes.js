@@ -1,12 +1,5 @@
 const express = require("express");
 const router = express.Router();
-// const rateLimit = require('express-rate-limit');
-
-// const loginLimiter = rateLimit({
-//   windowMs: 15 * 60 * 1000,
-//   max: 10,
-//   message: 'Too many login attempts from this IP, please try again after 15 minutes'
-// });
 
 const {
   registerUser,
@@ -17,10 +10,11 @@ const {
   loginUser,
   signout,
   googleLogin,
-  checkLockoutStatus
+  requestResetPassword,
+  resetPassword,
+  checkLockoutStatus,
 } = require("../controllers/authControllers");
 const { checkAccountLock } = require("../middlewares/authMiddleware");
-const User = require("../models/usersModels");
 
 // user sign up or create a new account 
 router.post("/signup", registerUser);
@@ -34,7 +28,7 @@ router.post("/signin",checkAccountLock,loginUser);
 // New route to check lockout status
 router.post("/check-lockout", checkLockoutStatus);
 
-// goole login api 
+// google login api 
 router.post("/google-login", googleLogin);
 
 // get all users information 
@@ -46,6 +40,12 @@ router.patch("/users/:id", updateUser);
 // delete a specific user information 
 router.delete("/users/:id", deleteUser);
 
+// Password Reset (2 APIs)
+// a. Request Reset (POST /request-password-reset)
+router.post("/request-password-reset", requestResetPassword)
+
+// b. Reset Password (POST /reset-password)
+router.post("/reset-password", resetPassword)
 
 
 module.exports = router;

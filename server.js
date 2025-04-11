@@ -15,7 +15,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Configure CORS properly
 app.use(cors({
-  origin: ['http://localhost:3000', ],  // Allow only frontend origin
+  origin: ['http://localhost:3000', 'http://localhost:3001','https://online-resume-builder-omega.vercel.app'],  // Allow only frontend origin
   credentials: true  // Allow cookies and authentication headers
 }));
 
