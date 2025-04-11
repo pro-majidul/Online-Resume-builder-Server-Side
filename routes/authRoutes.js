@@ -12,6 +12,7 @@ const {
   googleLogin,
   requestResetPassword,
   resetPassword,
+  checkLockoutStatus,
 } = require("../controllers/authControllers");
 const { checkAccountLock } = require("../middlewares/authMiddleware");
 
@@ -25,7 +26,7 @@ router.post("/signout", signout);
 router.post("/signin",checkAccountLock,loginUser);
 
 // New route to check lockout status
-// router.post("/check-lockout", checkLockoutStatus);
+router.post("/check-lockout", checkLockoutStatus);
 
 // google login api 
 router.post("/google-login", googleLogin);
