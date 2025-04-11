@@ -2,7 +2,6 @@ const bcrypt = require("bcrypt");
 const User = require("../models/usersModels");
 const jwt = require("jsonwebtoken");
 const { signupSchema, signInSchema } = require("../middlewares/validator");
-// new
 const MAX_FAILED_ATTEMPTS = 3;
 const LOCKOUT_DURATION = 1 * 60 * 1000; // 15 minutes in milliseconds
 
@@ -92,26 +91,32 @@ const loginUser = async (req, res) => {
     user.lockUntil = null;
     await user.save();
 
-    // const token = jwt.sign(
-    //   { id: user._id, email: user.email, verified: user.verified },
-    //   process.env.JWT_SECRET,
-    //   { expiresIn: "7h" }
-    // );
-    // res
-    //   .cookie("Authorization", "Bearer" + token, {
-    //     expires: new Date(Date.now() + 8 * 3600000),
-    //     httpOnly: process.env.NODE_ENV === "production",
-    //     secure: process.env.NODE_ENV === "production",
-    //   })
-    //   .send({ success: true, message: "Login successful", token });
+    const token = jwt.sign(
+      { id: user._id, email: user.email, verified: user.verified },
+      process.env.JWT_SECRET,
+      { expiresIn: "7h" }
+    );
 
+    // return res
+    // .cookie("Authorization", `Bearer ${token}`, {
+    //   expires: new Date(Date.now() + 8 * 3600000),
+    //   httpOnly: true,
+    //   secure: process.env.NODE_ENV === "production",
+    //   sameSite: 'strict'
+    // })
+    // .json({
+    //   success: true,
+    //   message: "Login successful",
+    //   token,
+    //   user: { id: user._id, email: user.email }
+    // });
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      token,
+      user: { id: user._id, email: user.email },
+    });
 
-    const userData = {
-      id: user._id,
-      email: user.email,
-    };
-
-    res.json(userData);
   } catch (error) {
     console.error("Login error:", error);
     return res.status(500).json({
