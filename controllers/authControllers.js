@@ -32,25 +32,33 @@ const loginUser = async (req, res) => {
     if (error) {
       return res.status(401).send({ message: error.details[0].message });
     }
-    const user = await User.findOne({ email }).select("+password");
+    const user = await User.findOne({ email });
     if (!user)
       return res.status(401).send({ message: "Invalid email address" });
 
     const isMatch = await bcrypt.compare(password, user?.password);
     if (!isMatch) return res.status(401).send({ message: "Invalid password" });
 
-    const token = jwt.sign(
-      { id: user._id, email: user.email, verified: user.verified },
-      process.env.JWT_SECRET,
-      { expiresIn: "7h" }
-    );
-    res
-      .cookie("Authorization", "Bearer" + token, {
-        expires: new Date(Date.now() + 8 * 3600000),
-        httpOnly: process.env.NODE_ENV === "production",
-        secure: process.env.NODE_ENV === "production",
-      })
-      .send({ success: true, message: "Login successful", token });
+    // const token = jwt.sign(
+    //   { id: user._id, email: user.email, verified: user.verified },
+    //   process.env.JWT_SECRET,
+    //   { expiresIn: "7h" }
+    // );
+    // res
+    //   .cookie("Authorization", "Bearer" + token, {
+    //     expires: new Date(Date.now() + 8 * 3600000),
+    //     httpOnly: process.env.NODE_ENV === "production",
+    //     secure: process.env.NODE_ENV === "production",
+    //   })
+    //   .send({ success: true, message: "Login successful", token });
+
+
+    const userData = {
+      id: user._id,
+      email: user.email,
+    };
+
+    res.json(userData);
   } catch (error) {
     res.status(500).send({ message: "Server Error" });
   }
@@ -133,6 +141,31 @@ const deleteUser = async (req, res) => {
   }
 };
 
+
+
+
+// a Request Reset (POST /request-password-reset)
+
+const requestResetPassword = async (req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) return res.status(404).json({ message: "User not found" });
+
+  const token = crypto.randomBytes(32).toString("hex");
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+  user.resetToken = hashedToken;
+  user.resetTokenExpire = Date.now() + 3600000; // 1 hour
+  await user.save();
+
+  const resetLink = `http://localhost:3000/reset-password?token=${token}&email=${email}`;
+  // const resetLink = `https://online-resume-builder-omega.vercel.app/reset-password?token=${token}&email=${email}`;
+  sendEmail(user.email, "Reset Password", resetLink);
+  res.json({ message: "Reset link sent" });
+}
+
+
+
 module.exports = {
   registerUser,
   getUsers,
@@ -141,5 +174,7 @@ module.exports = {
   deleteUser,
   loginUser,
   signout,
-  googleLogin
+  googleLogin,
+  requestResetPassword,
+  resetPassword
 };

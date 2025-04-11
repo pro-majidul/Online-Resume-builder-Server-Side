@@ -8,7 +8,9 @@ const {
   deleteUser,
   loginUser,
   signout,
-  googleLogin
+  googleLogin,
+  requestResetPassword,
+  resetPassword
 } = require("../controllers/authControllers");
 
 // user sign up or create a new account 
@@ -31,5 +33,10 @@ router.get("/users/:id", getUserById);
 router.patch("/users/:id", updateUser);
 // delete a specific user information 
 router.delete("/users/:id", deleteUser);
+
+// Password Reset (2 APIs)
+// a. Request Reset (POST /request-password-reset)
+router.post("/request-password-reset", requestResetPassword)
+
 
 module.exports = router;
