@@ -164,7 +164,27 @@ const requestResetPassword = async (req, res) => {
   res.json({ message: "Reset link sent" });
 }
 
+// b. Reset Password (POST /reset-password) 
 
+const resetPassword = async (req, res) => {
+  const { email, token, newPassword } = req.body;
+
+  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+  const user = await User.findOne({
+    email,
+    resetToken: hashedToken,
+    resetTokenExpire: { $gt: Date.now() },
+  });
+
+  if (!user) return res.status(400).json({ message: "Invalid or expired token" });
+
+  user.password = await bcrypt.hash(newPassword, 12);
+  user.resetToken = undefined;
+  user.resetTokenExpire = undefined;
+  await user.save();
+
+  res.json({ message: "Password reset successful" });
+}
 
 module.exports = {
   registerUser,

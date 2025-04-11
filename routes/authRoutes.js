@@ -38,5 +38,7 @@ router.delete("/users/:id", deleteUser);
 // a. Request Reset (POST /request-password-reset)
 router.post("/request-password-reset", requestResetPassword)
 
+// b. Reset Password (POST /reset-password)
+router.post("/reset-password", resetPassword)
 
 module.exports = router;
