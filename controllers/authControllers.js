@@ -2,6 +2,9 @@ const bcrypt = require("bcrypt");
 const User = require("../models/usersModels");
 const jwt = require("jsonwebtoken");
 const { signupSchema, signInSchema } = require("../middlewares/validator");
+// new
+const MAX_FAILED_ATTEMPTS = 3;
+const LOCKOUT_DURATION = 1 * 60 * 1000; // 15 minutes in milliseconds
 
 //  (Register)
 const registerUser = async (req, res) => {
@@ -25,19 +28,145 @@ const registerUser = async (req, res) => {
 };
 
 //login (Authentication)
+// const loginUser = async (req, res) => {
+//   const { email, password } = req.body;
+//   try {
+//     const { error, value } = signInSchema.validate({ email, password });
+//     if (error) {
+//       return res.status(401).send({ message: error.details[0].message });
+//     }
+//     const user = await User.findOne({ email }).select("+password");
+//     if (!user)
+//       return res.status(401).send({ message: "Invalid email address" });
+
+
+
+//     // new new
+//      // Check if account is locked
+//      if (user.isLocked && user.lockUntil > Date.now()) {
+//       const remainingTime = Math.ceil((user.lockUntil - Date.now()) / 1000 / 60);
+//       return res.status(403).json({ 
+//         error: `Account locked. Try again in ${remainingTime} minutes` ,
+//         lockoutTime: user.lockUntil,
+//         isLocked: true // Add new
+//       });
+//     }
+
+
+
+//     const isMatch = await bcrypt.compare(password, user?.password);
+//     // if (!isMatch) return res.status(401).send({ message: "Invalid password" });
+
+//     // new
+//     if (!isMatch) {
+//       // Increment failed attempts
+//       user.failedLoginAttempts += 1;
+      
+//       // Lock account if threshold reached
+//       if (user.failedLoginAttempts >= MAX_FAILED_ATTEMPTS) {
+//         user.isLocked = true;
+//         user.lockUntil = new Date(Date.now() + LOCKOUT_DURATION);
+//       }
+      
+//       await user.save();
+//       // return res.status(401).json({ 
+//       //   error: `Invalid credentials. ${MAX_FAILED_ATTEMPTS - user.failedLoginAttempts} attempts remaining` 
+//       // });
+//       // new
+//       return res.status(401).json({ 
+//         error: `Invalid credentials. ${MAX_FAILED_ATTEMPTS - user.failedLoginAttempts} attempts remaining`,
+//         remainingAttempts: MAX_FAILED_ATTEMPTS - user.failedLoginAttempts,
+//         isLocked: user.isLocked,
+//         lockoutTime: user.lockUntil // Add this line
+//       });
+//     }
+
+//     // new
+//      // Reset failed attempts on successful login
+//      user.failedLoginAttempts = 0;
+//      user.isLocked = false;
+//      user.lockUntil = null;
+//      await user.save();
+
+//     const token = jwt.sign(
+//       { id: user._id, email: user.email, verified: user.verified },
+//       process.env.JWT_SECRET,
+//       { expiresIn: "7h" }
+//     );
+//     res
+//       .cookie("Authorization", "Bearer" + token, {
+//         expires: new Date(Date.now() + 8 * 3600000),
+//         httpOnly: process.env.NODE_ENV === "production",
+//         secure: process.env.NODE_ENV === "production",
+//       })
+//       .send({ success: true, message: "Login successful", token });
+//   } catch (error) {
+//     res.status(500).send({ message: "Server Error" });
+//   }
+// };
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
     const { error, value } = signInSchema.validate({ email, password });
     if (error) {
-      return res.status(401).send({ message: error.details[0].message });
+      return res.status(401).json({ 
+        error: error.details[0].message,
+        remainingAttempts: null,
+        isLocked: false
+      });
     }
-    const user = await User.findOne({ email });
-    if (!user)
-      return res.status(401).send({ message: "Invalid email address" });
 
-    const isMatch = await bcrypt.compare(password, user?.password);
-    if (!isMatch) return res.status(401).send({ message: "Invalid password" });
+    const user = await User.findOne({ email });
+    
+      // Always return current lock status even for invalid users
+      const responseData = {
+        isLocked: user?.isLocked || false,
+        lockUntil: user?.lockUntil || null,
+        remainingAttempts: user ? MAX_FAILED_ATTEMPTS - (user.failedLoginAttempts || 0) : MAX_FAILED_ATTEMPTS
+      };
+  
+      if (!user) {
+        return res.status(401).json({
+          ...responseData,
+          error: "Invalid credentials"
+        });
+      };
+
+    // Check account lock
+    if (user.isLocked && user.lockUntil > Date.now()) {
+      const remainingTime = Math.ceil((user.lockUntil - Date.now()) / 60000); // Minutes
+      return res.status(403).json({ 
+        error: `Account locked. Try again in ${remainingTime} minutes`,
+        lockoutTime: user.lockUntil.toISOString(),
+        isLocked: true,
+        remainingAttempts: 0 // Explicitly set to 0 when locked
+      });
+    }
+
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      user.failedLoginAttempts += 1;
+      
+      if (user.failedLoginAttempts >= MAX_FAILED_ATTEMPTS) {
+        user.isLocked = true;
+        user.lockUntil = new Date(Date.now() + LOCKOUT_DURATION);
+      }
+      
+      await user.save();
+      
+      return res.status(401).json({
+        error: `Invalid password. ${MAX_FAILED_ATTEMPTS - user.failedLoginAttempts} attempts remaining`,
+        remainingAttempts: MAX_FAILED_ATTEMPTS - user.failedLoginAttempts,
+        isLocked: user.isLocked,
+        lockoutTime: user.isLocked ? user.lockUntil.toISOString() : null
+      });
+    }
+
+    // Successful login
+    user.failedLoginAttempts = 0;
+    user.isLocked = false;
+    user.lockUntil = null;
+    await user.save();
 
     // const token = jwt.sign(
     //   { id: user._id, email: user.email, verified: user.verified },
@@ -60,7 +189,12 @@ const loginUser = async (req, res) => {
 
     res.json(userData);
   } catch (error) {
-    res.status(500).send({ message: "Server Error" });
+    console.error("Login error:", error);
+    return res.status(500).json({ 
+      error: "Server error",
+      isLocked: false,
+      remainingAttempts: null
+    });
   }
 };
 

@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+
 const {
   registerUser,
   getUsers,
@@ -10,8 +11,9 @@ const {
   signout,
   googleLogin,
   requestResetPassword,
-  resetPassword
+  resetPassword,
 } = require("../controllers/authControllers");
+const { checkAccountLock } = require("../middlewares/authMiddleware");
 
 // user sign up or create a new account 
 router.post("/signup", registerUser);
@@ -20,9 +22,12 @@ router.post("/signup", registerUser);
 router.post("/signout", signout);
 
 // user login 
-router.post("/signin", loginUser);
+router.post("/signin",checkAccountLock,loginUser);
 
-// goole login api 
+// New route to check lockout status
+// router.post("/check-lockout", checkLockoutStatus);
+
+// google login api 
 router.post("/google-login", googleLogin);
 
 // get all users information 
@@ -40,5 +45,6 @@ router.post("/request-password-reset", requestResetPassword)
 
 // b. Reset Password (POST /reset-password)
 router.post("/reset-password", resetPassword)
+
 
 module.exports = router;
