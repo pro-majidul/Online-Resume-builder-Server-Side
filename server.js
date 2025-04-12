@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors({
   credentials: true,
   origin: process.env.NODE_ENV === 'production' 
-    ? 'https://online-resume-builder-omega.vercel.app/' 
+    ? 'https://online-resume-builder-omega.vercel.app' 
     : 'http://localhost:3000'
 }));
 
