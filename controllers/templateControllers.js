@@ -12,38 +12,87 @@ const getTemplate = async (req, res) => {
 const postTemplate= async (req, res)=>{
     const data = 
     {
-      "id": 5,
-      "name": "Modern One Column Resume",
+      "name": "Modern Blue Tailwind",
       "layout": `
-        <div class="flex justify-center bg-gray-100 py-8">
-          <div class="bg-blue-50 shadow-lg p-8 w-full max-w-[800px] min-h-[900px]">
-            <h1 class="text-3xl font-semibold text-gray-800">Alex Johnson</h1>
-            <p class="text-sm text-gray-600">Web Developer | UI/UX Designer</p>
+        <div class="min-h-screen bg-gray-50 p-8">
+          <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-xl overflow-hidden">
             
-            <h2 class="text-lg font-bold mt-6 text-blue-600">PROFILE</h2>
-            <p class="text-sm text-gray-600 mt-2">Lorem ipsum dolor sit amet, consectetur adipiscing elit. Integer nec odio. Praesent libero. Sed cursus ante dapibus diam. Sed nisi. Nulla quis sem at nibh elementum imperdiet.</p>
-            
-            <h2 class="text-lg font-bold mt-6 text-blue-600">EXPERIENCE</h2>
-            <p class="font-semibold text-sm">Senior Web Developer - 2022 - Present</p>
-            <p class="text-sm text-gray-600">Company Name | Location</p>
-            
-            <h2 class="text-lg font-bold mt-6 text-blue-600">EDUCATION</h2>
-            <p class="text-sm text-gray-600">Bachelor of Science in Computer Science - 2018-2022</p>
-            
-            <h2 class="text-lg font-bold mt-6 text-blue-600">SKILLS</h2>
-            <ul class="list-disc pl-5 text-sm text-gray-600">
-              <li>React.js</li>
-              <li>Node.js</li>
-              <li>HTML, CSS, JavaScript</li>
-              <li>UI/UX Design</li>
-            </ul>
-            
-            <h2 class="text-lg font-bold mt-6 text-blue-600">CONTACT</h2>
-            <p class="text-sm text-gray-600">📞 +000 111 222 3334</p>
-            <p class="text-sm text-gray-600">📧 alex.johnson@example.com</p>
+            <!-- Header Section -->
+            <div class="bg-blue-900 text-white px-8 py-6">
+              <h1 class="text-4xl font-bold mb-2">{{name}}</h1>
+              <p class="text-xl text-blue-200">{{job_title}}</p>
+            </div>
+    
+            <!-- Contact Info -->
+            <div class="flex flex-wrap gap-4 p-6 border-b">
+              <div class="flex items-center gap-2 text-gray-600">
+                <svg class="w-5 h-5"><!-- Location Icon --></svg>
+                <span>{{address}}</span>
+              </div>
+              <div class="flex items-center gap-2 text-gray-600">
+                <svg class="w-5 h-5"><!-- Email Icon --></svg>
+                <span>{{email}}</span>
+              </div>
+              <div class="flex items-center gap-2 text-gray-600">
+                <svg class="w-5 h-5"><!-- Phone Icon --></svg>
+                <span>{{phone}}</span>
+              </div>
+            </div>
+    
+            <!-- Main Content -->
+            <div class="grid md:grid-cols-3 gap-8 p-8">
+              <!-- Left Sidebar -->
+              <div class="md:col-span-1 space-y-6">
+                <!-- Skills -->
+                <div>
+                  <h2 class="text-2xl font-bold text-blue-900 mb-4">Skills</h2>
+                  <div class="flex flex-wrap gap-2">
+                    {{#each skills}}
+                    <span class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">{{this}}</span>
+                    {{/each}}
+                  </div>
+                </div>
+    
+                <!-- Education -->
+                <div>
+                  <h2 class="text-2xl font-bold text-blue-900 mb-4">Education</h2>
+                  {{#each education}}
+                  <div class="mb-4">
+                    <h3 class="font-semibold text-gray-800">{{degree}}</h3>
+                    <p class="text-gray-600 text-sm">{{university}}</p>
+                    <p class="text-gray-500 text-xs">{{duration}}</p>
+                  </div>
+                  {{/each}}
+                </div>
+              </div>
+    
+              <!-- Right Main Content -->
+              <div class="md:col-span-2 space-y-8">
+                <!-- Experience -->
+                <div>
+                  <h2 class="text-2xl font-bold text-blue-900 mb-6">Experience</h2>
+                  {{#each experience}}
+                  <div class="mb-6">
+                    <div class="flex justify-between items-start mb-2">
+                      <h3 class="text-xl font-semibold text-gray-800">{{position}}</h3>
+                      <span class="text-sm bg-blue-100 text-blue-800 px-3 py-1 rounded-full">{{duration}}</span>
+                    </div>
+                    <p class="text-gray-600 mb-3">{{company}}</p>
+                    <ul class="list-disc pl-6 space-y-2">
+                      {{#each points}}
+                      <li class="text-gray-700">{{this}}</li>
+                      {{/each}}
+                    </ul>
+                  </div>
+                  {{/each}}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-      `
+      `,
+      "css": "",
+      "preview": "https://cdn.example.com/previews/modern-blue-tailwind.jpg",
     }
     
       
