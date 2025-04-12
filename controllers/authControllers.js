@@ -2,7 +2,6 @@ const bcrypt = require("bcrypt");
 const User = require("../models/usersModels");
 const jwt = require("jsonwebtoken");
 const { signupSchema, signInSchema } = require("../middlewares/validator");
-// new
 const MAX_FAILED_ATTEMPTS = 3;
 const LOCKOUT_DURATION = 1 * 60 * 1000; // 15 minutes in milliseconds
 
@@ -31,16 +30,18 @@ const registerUser = async (req, res) => {
 const loginUser = async (req, res) => {
   const { email, password } = req.body;
   try {
-    const { error, value } = signInSchema.validate({ email, password });
-    if (error) {
-      return res.status(401).json({
-        error: error.details[0].message,
-        remainingAttempts: null,
-        isLocked: false
-      });
-    }
+     // Validate input
+     const { error } = signInSchema.validate({ email, password });
+     if (error) {
+       return res.status(400).json({
+         error: error.details[0].message,
+         remainingAttempts: MAX_FAILED_ATTEMPTS,
+         isLocked: false
+       });
+     }
 
-    const user = await User.findOne({ email });
+    // Find user and explicitly select the password field
+    const user = await User.findOne({ email }).select('+password +failedLoginAttempts +isLocked +lockUntil');
 
     // Always return current lock status even for invalid users
     const responseData = {
@@ -92,26 +93,20 @@ const loginUser = async (req, res) => {
     user.lockUntil = null;
     await user.save();
 
-    // const token = jwt.sign(
-    //   { id: user._id, email: user.email, verified: user.verified },
-    //   process.env.JWT_SECRET,
-    //   { expiresIn: "7h" }
-    // );
-    // res
-    //   .cookie("Authorization", "Bearer" + token, {
-    //     expires: new Date(Date.now() + 8 * 3600000),
-    //     httpOnly: process.env.NODE_ENV === "production",
-    //     secure: process.env.NODE_ENV === "production",
-    //   })
-    //   .send({ success: true, message: "Login successful", token });
+    const token = jwt.sign(
+      { id: user._id, email: user.email, verified: user.verified },
+      process.env.JWT_SECRET,
+      { expiresIn: "7h" }
+    );
 
+    
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      token,
+      user: { id: user._id, email: user.email },
+    });
 
-    const userData = {
-      id: user._id,
-      email: user.email,
-    };
-
-    res.json(userData);
   } catch (error) {
     console.error("Login error:", error);
     return res.status(500).json({
@@ -236,45 +231,45 @@ const checkLockoutStatus = async (req, res) => {
 
 // a Request Reset (POST /request-password-reset)
 
-const requestResetPassword = async (req, res) => {
-  const { email } = req.body;
-  const user = await User.findOne({ email });
-  if (!user) return res.status(404).json({ message: "User not found" });
+// const requestResetPassword = async (req, res) => {
+//   const { email } = req.body;
+//   const user = await User.findOne({ email });
+//   if (!user) return res.status(404).json({ message: "User not found" });
 
-  const token = crypto.randomBytes(32).toString("hex");
-  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+//   const token = crypto.randomBytes(32).toString("hex");
+//   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
 
-  user.resetToken = hashedToken;
-  user.resetTokenExpire = Date.now() + 3600000; // 1 hour
-  await user.save();
+//   user.resetToken = hashedToken;
+//   user.resetTokenExpire = Date.now() + 3600000; // 1 hour
+//   await user.save();
 
-  const resetLink = `http://localhost:3000/reset-password?token=${token}&email=${email}`;
-  // const resetLink = `https://online-resume-builder-omega.vercel.app/reset-password?token=${token}&email=${email}`;
-  sendEmail(user.email, "Reset Password", resetLink);
-  res.json({ message: "Reset link sent" });
-}
+//   const resetLink = `http://localhost:3000/reset-password?token=${token}&email=${email}`;
+//   // const resetLink = `https://online-resume-builder-omega.vercel.app/reset-password?token=${token}&email=${email}`;
+//   sendEmail(user.email, "Reset Password", resetLink);
+//   res.json({ message: "Reset link sent" });
+// }
 
 // b. Reset Password (POST /reset-password) 
 
-const resetPassword = async (req, res) => {
-  const { email, token, newPassword } = req.body;
+// const resetPassword = async (req, res) => {
+//   const { email, token, newPassword } = req.body;
 
-  const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-  const user = await User.findOne({
-    email,
-    resetToken: hashedToken,
-    resetTokenExpire: { $gt: Date.now() },
-  });
+//   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+//   const user = await User.findOne({
+//     email,
+//     resetToken: hashedToken,
+//     resetTokenExpire: { $gt: Date.now() },
+//   });
 
-  if (!user) return res.status(400).json({ message: "Invalid or expired token" });
+//   if (!user) return res.status(400).json({ message: "Invalid or expired token" });
 
-  user.password = await bcrypt.hash(newPassword, 12);
-  user.resetToken = undefined;
-  user.resetTokenExpire = undefined;
-  await user.save();
+//   user.password = await bcrypt.hash(newPassword, 12);
+//   user.resetToken = undefined;
+//   user.resetTokenExpire = undefined;
+//   await user.save();
 
-  res.json({ message: "Password reset successful" });
-}
+//   res.json({ message: "Password reset successful" });
+// }
 
 module.exports = {
   registerUser,
@@ -285,7 +280,7 @@ module.exports = {
   loginUser,
   signout,
   googleLogin,
-  requestResetPassword,
-  resetPassword,
+  // requestResetPassword,
+  // resetPassword,
   checkLockoutStatus, // Add this to exports
 };

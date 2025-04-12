@@ -24,9 +24,7 @@ const checkAccountLock = async (req, res, next) => {
     next();
   };
 
-// module.exports = authMiddleware, checkAccountLock;
-// new
-// Export as separate named exports
+
 module.exports = {
     authMiddleware,
     checkAccountLock
