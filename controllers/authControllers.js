@@ -227,49 +227,6 @@ const checkLockoutStatus = async (req, res) => {
   }
 };
 
-
-// a Request Reset (POST /request-password-reset)
-
-// const requestResetPassword = async (req, res) => {
-//   const { email } = req.body;
-//   const user = await User.findOne({ email });
-//   if (!user) return res.status(404).json({ message: "User not found" });
-
-//   const token = crypto.randomBytes(32).toString("hex");
-//   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-
-//   user.resetToken = hashedToken;
-//   user.resetTokenExpire = Date.now() + 3600000; // 1 hour
-//   await user.save();
-
-//   const resetLink = `http://localhost:3000/reset-password?token=${token}&email=${email}`;
-//   // const resetLink = `https://online-resume-builder-omega.vercel.app/reset-password?token=${token}&email=${email}`;
-//   sendEmail(user.email, "Reset Password", resetLink);
-//   res.json({ message: "Reset link sent" });
-// }
-
-// b. Reset Password (POST /reset-password) 
-
-// const resetPassword = async (req, res) => {
-//   const { email, token, newPassword } = req.body;
-
-//   const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
-//   const user = await User.findOne({
-//     email,
-//     resetToken: hashedToken,
-//     resetTokenExpire: { $gt: Date.now() },
-//   });
-
-//   if (!user) return res.status(400).json({ message: "Invalid or expired token" });
-
-//   user.password = await bcrypt.hash(newPassword, 12);
-//   user.resetToken = undefined;
-//   user.resetTokenExpire = undefined;
-//   await user.save();
-
-//   res.json({ message: "Password reset successful" });
-// }
-
 module.exports = {
   registerUser,
   getUsers,
@@ -279,7 +236,5 @@ module.exports = {
   loginUser,
   signout,
   googleLogin,
-  // requestResetPassword,
-  // resetPassword,
   checkLockoutStatus, // Add this to exports
 };
