@@ -15,11 +15,19 @@ app.use(express.urlencoded({ extended: true }));
 
 
 // Enable secure cookies only in production
+// app.use(cors({
+//   credentials: true,
+//   origin: process.env.NODE_ENV === 'production' 
+//     ? 'https://online-resume-builder-omega.vercel.app' 
+//     : 'http://localhost:3000'
+// }));
+
 app.use(cors({
   credentials: true,
-  origin: process.env.NODE_ENV === 'production' 
-    ? 'https://online-resume-builder-omega.vercel.app' 
-    : 'http://localhost:3000'
+  origin: 'https://online-resume-builder-omega.vercel.app',
+  // origin: 'http://localhost:3000',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 app.get("/", (req, res) => {

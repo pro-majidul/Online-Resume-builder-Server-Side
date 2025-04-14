@@ -197,6 +197,7 @@ const deleteUser = async (req, res) => {
 // chack lockout status
 
 const checkLockoutStatus = async (req, res) => {
+  console.log("Check lockout called with:", req.body);
   const { email } = req.body;
   try {
     const user = await User.findOne({ email });
