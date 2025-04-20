@@ -24,7 +24,8 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(cors({
   credentials: true,
-  origin: 'https://online-resume-builder-omega.vercel.app',
+  origin: ['https://online-resume-builder-omega.vercel.app','http://localhost:3000' ],
+  // origin: 'http://localhost:3000',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
