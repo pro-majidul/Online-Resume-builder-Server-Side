@@ -10,8 +10,6 @@ const {
   loginUser,
   signout,
   googleLogin,
-  // requestResetPassword,
-  // resetPassword,
   checkLockoutStatus,
 } = require("../controllers/authControllers");
 const { checkAccountLock } = require("../middlewares/authMiddleware");
@@ -40,12 +38,6 @@ router.patch("/users/:id", updateUser);
 // delete a specific user information 
 router.delete("/users/:id", deleteUser);
 
-// Password Reset (2 APIs)
-// a. Request Reset (POST /request-password-reset)
-// router.post("/request-password-reset", requestResetPassword)
-
-// // b. Reset Password (POST /reset-password)
-// router.post("/reset-password", resetPassword)
 
 
 module.exports = router;
