@@ -8,6 +8,7 @@ const LOCKOUT_DURATION = 1 * 60 * 1000; // 15 minutes in milliseconds
 //  (Register)
 const registerUser = async (req, res) => {
   const { email, password } = req.body;
+  // console.log(email , password)
   try {
     const { error } = signupSchema.validate({ email, password });
     if (error) {
@@ -40,8 +41,13 @@ const loginUser = async (req, res) => {
        });
      }
 
-    // Find user and explicitly select the password field
+     const userEmail = await User.findOne({ email });
+     if (!userEmail) return res.status(400).send({ message: "User Can't Signup yet Please SignUp first" });
+    
+     // Find user and explicitly select the password field
     const user = await User.findOne({ email }).select('+password +failedLoginAttempts +isLocked +lockUntil');
+
+   
 
     // Always return current lock status even for invalid users
     const responseData = {
@@ -197,7 +203,7 @@ const deleteUser = async (req, res) => {
 // chack lockout status
 
 const checkLockoutStatus = async (req, res) => {
-  console.log("Check lockout called with:", req.body);
+  // console.log("Check lockout called with:", req.body);
   const { email } = req.body;
   try {
     const user = await User.findOne({ email });
